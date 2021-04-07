@@ -1,0 +1,32 @@
+_BASE_: "path/to/QueryDet-Pytorch/configs/BaseRetina.yaml"
+OUTPUT_DIR: "/test_output"
+MODEL:
+  META_ARCHITECTURE: "RetinaNet_D2"
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  RESNETS:
+    DEPTH: 50
+
+  ANCHOR_GENERATOR:
+    SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3)] for x in [32, 64, 128, 256, 512]]"]
+  
+  RETINANET:
+    IN_FEATURES: ["p3", "p4", "p5", "p6", "p7"]   
+  
+SOLVER:
+  # 3x
+  # STEPS: (210000, 250000)
+  # MAX_ITER: 270000
+
+  # 1x
+  STEPS: (60000, 80000)
+  MAX_ITER: 90000
+  CLIP_GRADIENTS: 
+    ENABLED: False 
+
+META_INFO:
+  EVAL_GPU_TIME: True
+
+
+TEST:  
+  EVAL_PERIOD: 5000
+  DETECTIONS_PER_IMAGE: 200
