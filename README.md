@@ -1,4 +1,60 @@
 # QueryDet-PyTorch
-[QueryDet: Cascaded Sparse Query for Accelerating High-Resolution Small Object Detection](https://arxiv.org/abs/2103.09136)
+This repository is the official implementation of our paper: [QueryDet: Cascaded Sparse Query for Accelerating High-Resolution Small Object Detection](https://arxiv.org/abs/2103.09136)
 
-Comming Soon :-)
+
+
+## Requirement
+
+a. Install Pytorch 1.4 following [here](https://pytorch.org/)
+
+b. Install APEX following [here](https://github.com/NVIDIA/apex)
+
+c. Install our Pytorch based sparse convolution operation following [here](https://github.com/traveller59/spconv)
+
+d. Install the detectron2 toolkit following [here](https://github.com/facebookresearch/detectron2), note that we build our approach based on version 0.2.1. Note you may follow the instructions to set COCO configs 
+
+d. Clone our repository and have fun with it!
+
+## Usage
+
+### 1. Data preparation
+
+a. To prepare MS-COCO, you may follow the instructions of Detectron2
+
+b. We provide the data preprocessing code for VisDrone2018. You need to first download dataset from [here](http://aiskyeye.com/) 
+
+c. Check visdrone/data_prepare.py to process the dataset
+
+### 2. Training
+
+```shell
+% train coco RetinaNet baseline
+python train_coco.py --config-file models/retinanet/configs/coco/train.yaml --num-gpu 8 OUTPUT_DIR /path/to/workdir
+
+% train coco QueryDet 
+python train_coco.py --config-file models/querydet/configs/coco/train.yaml --num-gpu 8 OUTPUT_DIR /path/to/workdir
+
+% train VisDrone RetinaNet baseline
+python train_visdrone.py --config-file models/retinanet/configs/visdrone/train.yaml --num-gpu 8 OUTPUT_DIR /path/to/workdir
+
+% train VisDrone QueryDet
+python train_visdrone.py --config-file models/querydet/configs/visdrone/train.yaml --num-gpu 8 OUTPUT_DIR /path/to/workdir
+```
+
+### 3. Test
+
+```shell
+% test coco RetinaNet baseline
+python infer_coco.py --config-file models/retinanet/configs/coco/test.yaml --num-gpu 8 --eval-only MODEL.WEIGHTS /path/to/workdir/model_final.pth
+
+% test coco QueryDet with Dense Inference
+python infer_coco.py --config-file models/querydet/configs/coco/test.yaml --num-gpu 8 --eval-only MODEL.WEIGHTS /path/to/workdir/model_final.pth
+
+% test coco QueryDet with CSQ
+python infer_coco.py --config-file models/querydet/configs/coco/test.yaml --num-gpu 8 --eval-only MODEL.WEIGHTS /path/to/workdir/model_final.pth MODEL.QUERY.QUERY_INFER True
+```
+
+
+
+## 
+
