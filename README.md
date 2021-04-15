@@ -13,7 +13,9 @@ c. Install our Pytorch based sparse convolution operation following [here](https
 
 d. Install the detectron2 toolkit following [here](https://github.com/facebookresearch/detectron2), note that we build our approach based on version 0.2.1. Note you may follow the instructions to set COCO configs 
 
-d. Clone our repository and have fun with it!
+e. Install the Detectron2_Backbone for usage of MobileNet, ShuffleNet, etc. Plese follow [here](https://github.com/sxhxliang/detectron2_backbone)
+
+f. Clone our repository and have fun with it!
 
 ## Usage
 
