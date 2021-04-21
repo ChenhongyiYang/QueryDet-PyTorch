@@ -56,7 +56,6 @@ from visdrone.dataloader import build_train_loader, build_test_loader
 from utils.json_evaluator import JsonEvaluator
 from utils.time_evaluator import GPUTimeEvaluator
 
-from models.backbone import build
 
 
 class Trainer(ApexTrainer):

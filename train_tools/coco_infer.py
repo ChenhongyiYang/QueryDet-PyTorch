@@ -47,7 +47,6 @@ from utils.time_evaluator import GPUTimeEvaluator
 from utils.coco_eval_fpn import COCOEvaluatorFPN
 from utils.anchor_gen import AnchorGeneratorWithCenter
 from models.config import add_querydet_config
-from models.backbone import build
 
 from detectron2_backbone.config import add_backbone_config
 from detectron2_backbone import mobilenet

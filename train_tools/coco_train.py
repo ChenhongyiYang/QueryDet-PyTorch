@@ -50,7 +50,6 @@ from utils.anchor_gen import AnchorGeneratorWithCenter
 from utils.coco_eval_fpn import COCOEvaluatorFPN
 
 from models.config import add_querydet_config
-from models.backbone import build
 
 from detectron2_backbone.config import add_backbone_config
 import detectron2_backbone.backbone.mobilenet
