@@ -5,15 +5,15 @@ This repository is the official implementation of our paper: [QueryDet: Cascaded
 
 ## Requirement
 
-a. Install [Pytorch 1.4](https://pytorch.org/).
+a. Install [Pytorch 1.4](https://pytorch.org/)
 
-b. Install [APEX](https://github.com/NVIDIA/apex) for mixed precision training.
+b. Install [APEX](https://github.com/NVIDIA/apex) for mixed precision training
 
-c. Install our Pytorch based [sparse convolution toolkit](https://github.com/traveller59/spconv).
+c. Install our Pytorch based [sparse convolution toolkit](https://github.com/traveller59/spconv)
 
-d. Install the [detectron2 toolkit](https://github.com/facebookresearch/detectron2). Note we build our approach based on version 0.2.1, you may follow the instructions to set environment configs.
+d. Install the [detectron2 toolkit](https://github.com/facebookresearch/detectron2). Note we build our approach based on version 0.2.1, you may follow the instructions to set environment configs
 
-e. Install the [Detectron2_Backbone](https://github.com/sxhxliang/detectron2_backbone) for usage of MobileNet and ShuffleNet.
+e. Install the [Detectron2_Backbone](https://github.com/sxhxliang/detectron2_backbone) for usage of MobileNet and ShuffleNet
 
 f. Clone our repository and have fun with it!
 
