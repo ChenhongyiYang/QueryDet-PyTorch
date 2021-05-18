@@ -25,7 +25,7 @@ a. To prepare MS-COCO, you may follow the instructions of Detectron2
 
 b. We provide the data preprocessing code for VisDrone2018. You need to first download dataset from [here](http://aiskyeye.com/) 
 
-c. Check visdrone/data_prepare.py to process the dataset
+c. Check [visdrone/data_prepare.py](https://github.com/ChenhongyiYang/QueryDet-PyTorch/blob/main/visdrone/data_prepare.py) to process the dataset
 
 ### 2. Training
 
