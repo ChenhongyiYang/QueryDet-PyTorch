@@ -58,5 +58,13 @@ python infer_coco.py --config-file models/querydet/configs/coco/test.yaml --num-
 
 
 
-## 
+## Citation
+```
+@article{yang2021querydet,
+  title={QueryDet: Cascaded Sparse Query for Accelerating High-Resolution Small Object Detection},
+  author={Yang, Chenhongyi and Huang, Zehao and Wang, Naiyan},
+  journal={arXiv preprint arXiv:2103.09136},
+  year={2021}
+}
+```
 
