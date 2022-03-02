@@ -1,5 +1,5 @@
 # QueryDet-PyTorch
-This repository is the official implementation of our paper: [QueryDet: Cascaded Sparse Query for Accelerating High-Resolution Small Object Detection](https://arxiv.org/abs/2103.09136)
+This repository is the official implementation of our CVPR 2022 paper: [QueryDet: Cascaded Sparse Query for Accelerating High-Resolution Small Object Detection](https://arxiv.org/abs/2103.09136)
 
 
 
