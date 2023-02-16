@@ -24,7 +24,7 @@ We have updated the QueryDet repository to make it easier to use. Specifically:
 
 ### Environment setting: 
 
-We tested the new QueryDet with CUDA 10.2 using NVIDIA 2080Ti GPUs. . We also provide a sample setting up script as following:
+We tested the new QueryDet with CUDA 10.2 using NVIDIA 2080Ti GPUs. We provide a sample setting up script as following:
 
 ```shell
 conda create -n querydet python=3.7 -y
