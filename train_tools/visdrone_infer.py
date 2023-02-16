@@ -21,7 +21,6 @@ from detectron2.evaluation import (
     SemSegEvaluator,
     verify_results,
 )
-
 from detectron2.evaluation import (
     DatasetEvaluator,
     inference_on_dataset,
@@ -36,19 +35,20 @@ from detectron2.evaluation.evaluator import inference_on_dataset
 from utils.val_mapper_with_ann import ValMapper
 from utils.anchor_gen import AnchorGeneratorWithCenter
 from utils.coco_eval_fpn import COCOEvaluatorFPN
-
-from models.config import add_querydet_config
-from visdrone.dataloader import build_train_loader, build_test_loader
 from utils.json_evaluator import JsonEvaluator
 from utils.time_evaluator import GPUTimeEvaluator
 
-from models.backbone import build
+from visdrone.dataloader import build_train_loader, build_test_loader
 
+# from models.backbone import build
+from configs.custom_config import add_custom_config
+
+from models.retinanet.retinanet import RetinaNet_D2
+from models.querydet.detector import RetinaNetQueryDet
 
 
 
 class Trainer(DefaultTrainer):
-
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
         if output_folder is None:
@@ -151,7 +151,7 @@ def setup(args):
     Create configs and perform basic setups.
     """
     cfg = get_cfg()
-    add_querydet_config(cfg)
+    add_custom_config(cfg)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
@@ -172,7 +172,6 @@ def start_train(args):
             verify_results(cfg, res)
         return res
 
-    assert cfg.MODEL.APEX.ENABLE
     trainer = Trainer(cfg)
     if not args.no_pretrain:
         trainer.resume_or_load(resume=args.resume)

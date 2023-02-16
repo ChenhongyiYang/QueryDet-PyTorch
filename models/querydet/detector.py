@@ -28,15 +28,15 @@ from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
 
 
 from torch.cuda import Event
-from apex.amp import float_function
 ###########################################################################################
-from apex_tools import apex_nms
 from utils.utils import *
 from utils.loop_matcher import LoopMatcher
 from utils.soft_nms import SoftNMSer
 from utils.anchor_gen import AnchorGeneratorWithCenter
 import models.querydet.det_head as dh
 import models.querydet.qinfer as qf
+
+from torch.cuda.amp import autocast
 
 __all__ = ["RetinaNetQueryDet"]
 
@@ -102,7 +102,6 @@ class RetinaNetQueryDet(nn.Module):
         self.query_threshold          = cfg.MODEL.QUERY.THRESHOLD
         self.query_context            = cfg.MODEL.QUERY.CONTEXT
         # other settings
-        self.apex                     = cfg.MODEL.APEX.ENABLE
         self.clear_cuda_cache         = cfg.META_INFO.CLEAR_CUDA_CACHE
         self.anchor_num               = len(cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS[0]) * \
                                         len(cfg.MODEL.ANCHOR_GENERATOR.SIZES[0])
@@ -262,11 +261,12 @@ class RetinaNetQueryDet(nn.Module):
         total_time = start_event.elapsed_time(end_event)
         return results, total_time
 
-    @float_function
+    # @float_function
     def _giou_loss(self, pred_deltas, anchors, gt_boxes):
-        pred_boxes = self.box2box_transform.apply_deltas(pred_deltas, anchors)
-        loss = giou_loss(pred_boxes, gt_boxes, reduction='sum')
-        return loss
+        with autocast(False):
+            pred_boxes = self.box2box_transform.apply_deltas(pred_deltas, anchors)
+            loss = giou_loss(pred_boxes, gt_boxes, reduction='sum')
+            return loss
 
 
     def det_loss(self, gt_classes, gt_anchors_targets, pred_logits, pred_deltas, all_anchors):
@@ -464,30 +464,27 @@ class RetinaNetQueryDet(nn.Module):
                                retina_box_cls, retina_box_delta, retina_anchors, 
                                small_det_logits, small_det_delta, small_det_anchors, 
                                image_size
-    ):
-        # small pos cls inference
-        all_cls = small_det_logits + retina_box_cls
-        all_delta = small_det_delta + retina_box_delta 
-        all_anchors = small_det_anchors + retina_anchors
+    ):  
+        with autocast(False):
+            # small pos cls inference
+            all_cls = small_det_logits + retina_box_cls
+            all_delta = small_det_delta + retina_box_delta 
+            all_anchors = small_det_anchors + retina_anchors
 
-        boxes_all, scores_all, class_idxs_all = self.decode_dets(all_cls, all_delta, all_anchors)
-        boxes_all, scores_all, class_idxs_all = [cat(x) for x in [boxes_all, scores_all, class_idxs_all]]
-        
-        if not self.apex:
+            boxes_all, scores_all, class_idxs_all = self.decode_dets(all_cls, all_delta, all_anchors)
+            boxes_all, scores_all, class_idxs_all = [cat(x) for x in [boxes_all, scores_all, class_idxs_all]]
+            
             if self.use_soft_nms:  
                 keep, soft_nms_scores = self.soft_nmser(boxes_all, scores_all, class_idxs_all)
-                scores_all[keep] = soft_nms_scores
             else:
                 keep = batched_nms(boxes_all, scores_all, class_idxs_all, self.nms_threshold)
-        else:
-            keep = apex_nms.batched_nms(boxes_all, scores_all, class_idxs_all, self.nms_threshold)
-        result = Instances(image_size)
+            result = Instances(image_size)
 
-        keep = keep[: self.max_detections_per_image]       
-        result.pred_boxes = Boxes(boxes_all[keep])
-        result.scores = scores_all[keep]
-        result.pred_classes = class_idxs_all[keep]
-        return result
+            keep = keep[: self.max_detections_per_image]       
+            result.pred_boxes = Boxes(boxes_all[keep])
+            result.scores = scores_all[keep]
+            result.pred_classes = class_idxs_all[keep]
+            return result
 
 
     def preprocess_image(self, batched_inputs):

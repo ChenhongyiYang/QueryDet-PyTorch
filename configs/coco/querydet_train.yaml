@@ -1,0 +1,64 @@
+_BASE_: "../BaseRetina.yaml"
+OUTPUT_DIR: "/default_dir"
+
+MODEL:
+  META_ARCHITECTURE: "RetinaNetQueryDet"
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  
+  ANCHOR_GENERATOR:
+    NAME: "AnchorGeneratorWithCenter"
+    SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3)] for x in [16, 32, 64, 128, 256, 512]]"]
+  
+  RETINANET:
+    IN_FEATURES: ["p2", "p3", "p4", "p5", "p6", "p7"]   
+  
+  RESNETS:
+    DEPTH: 50
+    OUT_FEATURES: ["res2", "res3", "res4", "res5"]
+
+  FPN:
+    IN_FEATURES: ["res2", "res3", "res4", "res5"]
+  
+  QUERY:
+    Q_FEATURE_TRAIN: [1, 2]
+    FEATURES_WHOLE_TEST: [2, 3, 4, 5]
+    FEATURES_VALUE_TEST: [0, 1]
+    Q_FEATURE_TEST: [1, 2]
+
+    QUERY_LOSS_WEIGHT: [10., 10.]
+    QUERY_LOSS_GAMMA: [1.2, 1.2]
+
+    ENCODE_CENTER_DIS_COEFF: [1., 1.]
+    ENCODE_SMALL_OBJ_SCALE: [[0, 32], [0, 64]]
+    
+    QUERY_INFER: False
+
+  CUSTOM:
+    FOCAL_LOSS_ALPHAS: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+    FOCAL_LOSS_GAMMAS: [2.0, 2.0, 2.0, 2.0, 2.0, 2.0]
+    CLS_WEIGHTS: [1.0, 1.4, 2.1, 2.5, 2.9, 3.2]
+    REG_WEIGHTS: [1.0, 1.4, 2.1, 2.5, 2.9, 3.2]
+
+SOLVER:
+  # 3x
+  # STEPS: (210000, 250000)
+  # MAX_ITER: 270000
+
+  # 1x
+  BASE_LR: 0.01
+  STEPS: (60000, 80000)
+  MAX_ITER: 90000
+  IMS_PER_BATCH: 16
+  AMP:
+    ENABLED: True
+
+
+TEST:  
+  EVAL_PERIOD: 0
+  DETECTIONS_PER_IMAGE: 200
+
+META_INFO:
+  EVAL_GPU_TIME: False
+  EVAL_AP: True
+
+VIS_PERIOD: 0

@@ -1,0 +1,6 @@
+work_dirs
+work_dirs/*
+data
+data/*
+*/__pycache__
+*/__pycache__/*

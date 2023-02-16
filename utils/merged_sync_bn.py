@@ -5,7 +5,7 @@ import torch.distributed as dist
 from torch import nn
 from torch.autograd.function import Function
 from torch.nn import functional as F
-from apex.amp import float_function
+from torch.cuda.amp import autocast
 
 from detectron2.utils import comm, env
 from detectron2.layers.wrappers import BatchNorm2d
@@ -67,49 +67,50 @@ class MergedSyncBatchNorm(BatchNorm2d):
         return [(x * scale + bias) for x in inputs]
             
 
-    @float_function
+    # @float_function
     def forward(self, inputs):
-        if comm.get_world_size() == 1 or not self.training:
-            return self._eval_forward(inputs)
+        with autocast(False):
+            if comm.get_world_size() == 1 or not self.training:
+                return self._eval_forward(inputs)
 
-        B, C = inputs[0].shape[0], inputs[0].shape[1]
+            B, C = inputs[0].shape[0], inputs[0].shape[1]
 
-        mean = sum([torch.mean(input, dim=[0, 2, 3]) for input in inputs]) / len(inputs)
-        meansqr = sum([torch.mean(input * input, dim=[0, 2, 3]) for input in inputs]) / len(inputs)
+            mean = sum([torch.mean(input, dim=[0, 2, 3]) for input in inputs]) / len(inputs)
+            meansqr = sum([torch.mean(input * input, dim=[0, 2, 3]) for input in inputs]) / len(inputs)
 
-        if self._stats_mode == "":
-            assert B > 0, 'SyncBatchNorm(stats_mode="") does not support zero batch size.'
-            vec = torch.cat([mean, meansqr], dim=0)
-            vec = AllReduce.apply(vec) * (1.0 / dist.get_world_size())
-            mean, meansqr = torch.split(vec, C)
-            momentum = self.momentum
-        else:
-            if B == 0:
-                vec = torch.zeros([2 * C + 1], device=mean.device, dtype=mean.dtype)
-                vec = vec + _input.sum()  # make sure there is gradient w.r.t input
+            if self._stats_mode == "":
+                assert B > 0, 'SyncBatchNorm(stats_mode="") does not support zero batch size.'
+                vec = torch.cat([mean, meansqr], dim=0)
+                vec = AllReduce.apply(vec) * (1.0 / dist.get_world_size())
+                mean, meansqr = torch.split(vec, C)
+                momentum = self.momentum
             else:
-                vec = torch.cat(
-                    [mean, meansqr, torch.ones([1], device=mean.device, dtype=mean.dtype)], dim=0
-                )
-            vec = AllReduce.apply(vec * B)
+                if B == 0:
+                    vec = torch.zeros([2 * C + 1], device=mean.device, dtype=mean.dtype)
+                    vec = vec + _input.sum()  # make sure there is gradient w.r.t input
+                else:
+                    vec = torch.cat(
+                        [mean, meansqr, torch.ones([1], device=mean.device, dtype=mean.dtype)], dim=0
+                    )
+                vec = AllReduce.apply(vec * B)
 
-            total_batch = vec[-1].detach()
-            momentum = total_batch.clamp(max=1) * self.momentum  # no update if total_batch is 0
-            total_batch = torch.max(total_batch, torch.ones_like(total_batch))  # avoid div-by-zero
-            mean, meansqr, _ = torch.split(vec / total_batch, C)
+                total_batch = vec[-1].detach()
+                momentum = total_batch.clamp(max=1) * self.momentum  # no update if total_batch is 0
+                total_batch = torch.max(total_batch, torch.ones_like(total_batch))  # avoid div-by-zero
+                mean, meansqr, _ = torch.split(vec / total_batch, C)
 
-        var = meansqr - mean * mean
-        invstd = torch.rsqrt(var + self.eps)
-        scale = self.weight * invstd
-        bias = self.bias - mean * scale
-        scale = scale.reshape(1, -1, 1, 1)
-        bias = bias.reshape(1, -1, 1, 1)
+            var = meansqr - mean * mean
+            invstd = torch.rsqrt(var + self.eps)
+            scale = self.weight * invstd
+            bias = self.bias - mean * scale
+            scale = scale.reshape(1, -1, 1, 1)
+            bias = bias.reshape(1, -1, 1, 1)
 
-        self.running_mean += momentum * (mean.detach() - self.running_mean)
-        self.running_var += momentum * (var.detach() - self.running_var)
+            self.running_mean += momentum * (mean.detach() - self.running_mean)
+            self.running_var += momentum * (var.detach() - self.running_var)
 
-        self._batch_mean = mean 
-        self._batch_meansqr  = meansqr
+            self._batch_mean = mean 
+            self._batch_meansqr  = meansqr
 
-        outputs = [(input * scale + bias) for input in inputs]
-        return outputs
+            outputs = [(input * scale + bias) for input in inputs]
+            return outputs

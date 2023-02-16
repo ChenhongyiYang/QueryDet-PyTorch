@@ -24,6 +24,8 @@ import torch
 import time
 import argparse
 
+from torch.nn.parallel import DistributedDataParallel
+
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
@@ -44,21 +46,91 @@ from detectron2.modeling import GeneralizedRCNNWithTTA
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.evaluation.evaluator import inference_on_dataset
 from detectron2.utils.events import JSONWriter, TensorboardXWriter
-
-from apex_tools.apex_trainer import ApexTrainer
+from detectron2.engine.train_loop import AMPTrainer, SimpleTrainer
+from detectron2.engine.defaults import DefaultTrainer
 
 from utils.val_mapper_with_ann import ValMapper
 from utils.anchor_gen import AnchorGeneratorWithCenter
 from utils.coco_eval_fpn import COCOEvaluatorFPN
-
-from models.config import add_querydet_config
-from visdrone.dataloader import build_train_loader, build_test_loader
 from utils.json_evaluator import JsonEvaluator
 from utils.time_evaluator import GPUTimeEvaluator
 
+from visdrone.dataloader import build_train_loader, build_test_loader
+
+from configs.custom_config import add_custom_config
 
 
-class Trainer(ApexTrainer):
+class Trainer(DefaultTrainer):
+    def __init__(self, cfg, resume=False, reuse_ckpt=False):
+        """
+        Args:
+            cfg (CfgNode):
+        """
+        super(DefaultTrainer, self).__init__()
+
+        logger = logging.getLogger("detectron2")
+        if not logger.isEnabledFor(logging.INFO):  # setup_logger is not called for d2
+            setup_logger()
+        cfg = DefaultTrainer.auto_scale_workers(cfg, comm.get_world_size())
+
+        # Assume these objects must be constructed in this order.
+        model = self.build_model(cfg)
+
+        ckpt = DetectionCheckpointer(model)
+        self.start_iter = 0
+        self.start_iter = ckpt.resume_or_load(cfg.MODEL.WEIGHTS, resume=resume).get("iteration", -1) + 1
+        self.iter =self.start_iter
+
+        optimizer = self.build_optimizer(cfg, model)
+        data_loader = self.build_train_loader(cfg)
+
+        # For training, wrap with DDP. But don't need this for inference.
+        if comm.get_world_size() > 1:
+            model = DistributedDataParallel(
+                model, device_ids=[comm.get_local_rank()], broadcast_buffers=False
+            )
+        self._trainer = (AMPTrainer if cfg.SOLVER.AMP.ENABLED else SimpleTrainer)(
+            model, data_loader, optimizer
+        )
+
+        self.scheduler = self.build_lr_scheduler(cfg, optimizer)
+        self.checkpointer = DetectionCheckpointer(
+            model,
+            cfg.OUTPUT_DIR,
+            optimizer=optimizer,
+            scheduler=self.scheduler,
+        )
+        self.start_iter = 0
+        self.max_iter = cfg.SOLVER.MAX_ITER
+        self.cfg = cfg
+
+        self.register_hooks(self.build_hooks())
+
+    def resume_or_load(self, resume=True):
+        """
+        If `resume==True` and `cfg.OUTPUT_DIR` contains the last checkpoint (defined by
+        a `last_checkpoint` file), resume from the file. Resuming means loading all
+        available states (eg. optimizer and scheduler) and update iteration counter
+        from the checkpoint. ``cfg.MODEL.WEIGHTS`` will not be used.
+        Otherwise, this is considered as an independent training. The method will load model
+        weights from the file `cfg.MODEL.WEIGHTS` (but will not load other states) and start
+        from iteration 0.
+        Args:
+            resume (bool): whether to do resume or not
+        """
+        checkpoint = self.checkpointer.resume_or_load(self.cfg.MODEL.WEIGHTS, resume=resume)
+        print(self.cfg.MODEL.WEIGHTS)
+        exit()
+        if resume and self.checkpointer.has_checkpoint():
+            self.start_iter = checkpoint.get("iteration", -1) + 1
+            # The checkpoint stores the training iteration that just finished, thus we start
+            # at the next iteration (or iter zero if there's no checkpoint).
+        if isinstance(self.model, DistributedDataParallel):
+            # broadcast loaded data/model from the first rank, because other
+            # machines may not have access to the checkpoint file
+            if TORCH_VERSION >= (1, 7):
+                self.model._sync_params_and_buffers()
+            self.start_iter = comm.all_gather(self.start_iter)[0]
 
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
@@ -153,7 +225,7 @@ def setup(args):
     Create configs and perform basic setups.
     """
     cfg = get_cfg()
-    add_querydet_config(cfg)
+    add_custom_config(cfg)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
@@ -174,6 +246,5 @@ def start_train(args):
             verify_results(cfg, res)
         return res
 
-    assert cfg.MODEL.APEX.ENABLE
-    trainer = Trainer(cfg, resume=args.resume)
+    trainer = Trainer(cfg, resume=args.resume, reuse_ckpt=args.no_pretrain)
     return trainer.train()

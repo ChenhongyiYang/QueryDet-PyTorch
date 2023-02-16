@@ -38,7 +38,7 @@ def get_train_data_dicts(json_file, img_root, filter_empty=False):
         img_id = ann['image_id']
         if img_id not in annotations.keys():
             annotations[img_id] = []
-        annotations[img_id].append({'bbox': ann['bbox'], 'category_id': ann['category_id'], 'iscrowd': ann['iscrowd'], 'area': ann['area']})
+        annotations[img_id].append({'bbox': ann['bbox'], 'category_id': ann['category_id']-1, 'iscrowd': ann['iscrowd'], 'area': ann['area']})
     
     for img_id in images.keys():
         if img_id not in annotations.keys():
@@ -55,7 +55,7 @@ def get_train_data_dicts(json_file, img_root, filter_empty=False):
         data_dict['image_id'] = img_id
         data_dict['annotations'] = []
         for ann in annotations[img_id]:
-            data_dict['annotations'].append({'bbox': ann['bbox'], 'iscrowd': ann['iscrowd'], 'category_id': ann['category_id']-1, 'bbox_mode': BoxMode.XYWH_ABS})
+            data_dict['annotations'].append({'bbox': ann['bbox'], 'iscrowd': ann['iscrowd'], 'category_id': ann['category_id'], 'bbox_mode': BoxMode.XYWH_ABS})
         data_dicts.append(data_dict)
     return data_dicts
 

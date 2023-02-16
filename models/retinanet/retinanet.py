@@ -22,7 +22,6 @@ from detectron2.modeling.matcher import Matcher
 from detectron2.modeling.postprocessing import detector_postprocess
 from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
 
-from apex_tools import apex_nms
 from torch.cuda import Event
 from utils.loop_matcher import LoopMatcher
 
@@ -95,7 +94,6 @@ class RetinaNet_D2(nn.Module):
         self.vis_period               = cfg.VIS_PERIOD
         self.input_format             = cfg.INPUT.FORMAT
         self.scale_factor             = 1
-        self.apex                     = cfg.MODEL.APEX.ENABLE
         # fmt: on
 
         self.backbone = build_backbone(cfg)
@@ -131,6 +129,9 @@ class RetinaNet_D2(nn.Module):
         """
         self.loss_normalizer = 100  # initialize with any reasonable #fg that's not too small
         self.loss_normalizer_momentum = 0.9
+
+        self.iter = 0
+        self.class_stat = [0 for _ in range(10)]
 
     @property
     def device(self):
@@ -183,6 +184,7 @@ class RetinaNet_D2(nn.Module):
             gt_instances = None
         
         start_event.record()
+
         features = self.backbone(images.tensor)
         features = [features[f] for f in self.in_features]
         box_cls, box_delta = self.head(features)
@@ -231,7 +233,6 @@ class RetinaNet_D2(nn.Module):
         anchors = Boxes.cat(anchors)  # Rx4
 
         for targets_per_image in targets:
-            
             if type(self.matcher) == Matcher:
                 match_quality_matrix = pairwise_iou(targets_per_image.gt_boxes, anchors)
                 gt_matched_idxs, anchor_labels = self.matcher(match_quality_matrix)
@@ -274,7 +275,7 @@ class RetinaNet_D2(nn.Module):
             gt_classes_target = torch.zeros_like(logits)
             gt_classes_target[f_idxs, gt_class[f_idxs]] = 1
             return gt_classes_target
-        
+
         assert len(cls_weights) == len(pred_logits)
         assert len(cls_weights) == len(reg_weights)
 
@@ -406,11 +407,9 @@ class RetinaNet_D2(nn.Module):
         boxes_all, scores_all, class_idxs_all = [
             cat(x) for x in [boxes_all, scores_all, class_idxs_all]
         ]
-        if not self.apex:
-            keep = batched_nms(boxes_all, scores_all, class_idxs_all, self.nms_threshold)
-        else:
-            keep = apex_nms.batched_nms(boxes_all, scores_all, class_idxs_all, self.nms_threshold)
-
+ 
+        keep = batched_nms(boxes_all, scores_all, class_idxs_all, self.nms_threshold)
+        
         keep = keep[: self.max_detections_per_image]
 
         result = Instances(image_size)
@@ -480,7 +479,6 @@ class RetinaNetHead(nn.Module):
         # Use prior in model initialization to improve stability
         bias_value = -(math.log((1 - prior_prob) / prior_prob))
         torch.nn.init.constant_(self.cls_score.bias, bias_value)
-
 
     def forward(self, features):
         """

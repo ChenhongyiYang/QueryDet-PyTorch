@@ -41,15 +41,15 @@ from detectron2.evaluation import (
 )
 from detectron2.modeling import GeneralizedRCNNWithTTA
 from detectron2.checkpoint import DetectionCheckpointer
+from detectron2_backbone.config import add_backbone_config
+from detectron2_backbone import mobilenet
 
 from utils.val_mapper_with_ann import ValMapper
 from utils.time_evaluator import GPUTimeEvaluator
 from utils.coco_eval_fpn import COCOEvaluatorFPN
 from utils.anchor_gen import AnchorGeneratorWithCenter
-from models.config import add_querydet_config
+from configs.custom_config import add_custom_config
 
-from detectron2_backbone.config import add_backbone_config
-from detectron2_backbone import mobilenet
 
 
 class Trainer(DefaultTrainer):
@@ -126,7 +126,7 @@ def setup(args):
     Create configs and perform basic setups.
     """
     cfg = get_cfg()
-    add_querydet_config(cfg)
+    add_custom_config(cfg)
     add_backbone_config(cfg)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)

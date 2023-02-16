@@ -1,6 +1,4 @@
 import sys
-sys.path.append('path/to/QueryDet-PyTorch')
-
 
 from detectron2.engine import launch
 from train_tools.coco_infer import default_argument_parser, start_train

@@ -1,7 +1,7 @@
 from typing import List
 import torch
 import torch.nn.functional as F 
-import spconv
+import spconv.pytorch as spconv
 
 
 def permute_to_N_HWA_K(tensor, K):
@@ -91,9 +91,8 @@ class QueryInfer(object):
         sparse_inds = (sparse_ys * fw + sparse_xs).long()
 
         sparse_features = feature_value.view(fc, -1).transpose(0, 1)[sparse_inds].view(-1, fc)
-        sparse_indices  = torch.stack((torch.zeros_like(sparse_ys), sparse_ys, sparse_xs), dim=0).t().contiguous()
-        
-        sparse_tensor = spconv.SparseConvTensor(sparse_features, sparse_indices, (fh, fw), 1)
+        sparse_indices  = torch.stack((torch.zeros_like(sparse_ys), sparse_ys, sparse_xs), dim=-1)  
+        sparse_tensor = spconv.SparseConvTensor(sparse_features, sparse_indices.int(), (fh, fw), 1)
   
         anchors = anchors.tensor.view(-1, self.anchor_num, 4)
         selected_anchors = anchors[inds].view(1, -1, 4)
@@ -102,15 +101,15 @@ class QueryInfer(object):
     def _make_spconv(self, weights, biases):
         nets = []
         for i in range(len(weights)):
-            in_channel  = weights[i].shape[0]
-            out_channel = weights[i].shape[1]
+            in_channel  = weights[i].shape[1]
+            out_channel = weights[i].shape[0]
             k_size      = weights[i].shape[2]
-            filter = spconv.SubMConv2d(in_channel, out_channel, k_size, 1, padding=k_size//2, indice_key="asd")
-            filter.weight.data = weights[i].transpose(1,2).transpose(0,1).transpose(2,3).transpose(1,2).transpose(2,3)
+            filter = spconv.SubMConv2d(in_channel, out_channel, k_size, 1, padding=k_size//2, indice_key="asd", algo=spconv.ConvAlgo.Native).to(device=weights[i].device)
+            filter.weight.data[:] = weights[i].permute(2,3,1,0).contiguous()[:] # transpose(1,2).transpose(0,1).transpose(2,3).transpose(1,2).transpose(2,3)
             filter.bias.data   = biases[i]
             nets.append(filter)
             if i != len(weights) - 1:
-                nets.append(torch.nn.ReLU())
+                nets.append(torch.nn.ReLU(inplace=True))
         return spconv.SparseSequential(*nets)
 
     def _make_conv(self, weights, biases):
