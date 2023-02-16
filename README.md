@@ -37,7 +37,7 @@ pip install spconv-cu102==2.1.25
 # Clone our repository and have fun with it! 
 git clone https://github.com/ChenhongyiYang/QueryDet-PyTorch.git
 
-# OPTIONAL: Install the python evaluation tool for VisDrone if you 
+# OPTIONAL: Install the python evaluation tool for VisDrone
 # Reference: https://github.com/tjiiv-cprg/visdrone-det-toolkit-python
 cd visdrone-det-toolkit-python
 pip install -e .
