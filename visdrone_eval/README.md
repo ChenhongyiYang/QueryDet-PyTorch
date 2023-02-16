@@ -15,8 +15,6 @@ python evaluate.py
 Installation:
 
 ```bash
-git clone https://github.com/tjiiv-cprg/visdrone-det-toolkit-python.git
-cd visdrone-det-toolkit-python
 pip install -e .
 ```
 
@@ -29,4 +27,6 @@ ap_all, ap_50, ap_75, ar_1, ar_10, ar_100, ar_500 = eval_det(
     annotations, results, heights, widths)
 ...
 ```
+
+Reference: https://github.com/tjiiv-cprg/visdrone-det-toolkit-python.git
 
