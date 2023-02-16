@@ -31,7 +31,6 @@ conda create -n querydet python=3.7 -y
 source activate querydet
 pip install torch==1.8.1+cu101 torchvision==0.9.1+cu101 -f https://download.pytorch.org/whl/torch_stable.html
 python -m pip install detectron2==0.4 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu102/torch1.7/index.html
-python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
 pip install spconv-cu102==2.1.25
 
 # Clone our repository and have fun with it! 
@@ -128,7 +127,7 @@ In the following we will assume you have created such a directory and introdce t
 python train_coco.py --config-file configs/coco/retinanet_train.yaml --num-gpu 8 OUTPUT_DIR work_dirs/coco_retinanet
 
 % train coco QueryDet 
-python train_coco.py --config-file configs/coco/retinanet_train.yaml --num-gpu 8 OUTPUT_DIR work_dirs/coco_querydet
+python train_coco.py --config-file configs/coco/querydet_train.yaml --num-gpu 8 OUTPUT_DIR work_dirs/coco_querydet
 
 % train VisDrone RetinaNet baseline
 python train_visdrone.py --config-file configs/visdrone/retinanet_train.yaml --num-gpu 8 OUTPUT_DIR work_dirs/visdrone_retinanet

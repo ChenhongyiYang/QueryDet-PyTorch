@@ -22,6 +22,7 @@ import os
 from collections import OrderedDict
 import torch
 import argparse
+from torch.nn.parallel import DistributedDataParallel
 
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
@@ -51,8 +52,8 @@ from utils.coco_eval_fpn import COCOEvaluatorFPN
 
 from configs.custom_config import add_custom_config
 
-from detectron2_backbone.config import add_backbone_config
-import detectron2_backbone.backbone.mobilenet
+# from detectron2_backbone.config import add_backbone_config
+# import detectron2_backbone.backbone.mobilenet
 
 
 class Trainer(DefaultTrainer):
@@ -177,7 +178,7 @@ def setup(args):
     """
     cfg = get_cfg()
     add_custom_config(cfg)
-    add_backbone_config(cfg)
+    # add_backbone_config(cfg)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
