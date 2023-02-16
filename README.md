@@ -39,7 +39,7 @@ git clone https://github.com/ChenhongyiYang/QueryDet-PyTorch.git
 
 # OPTIONAL: Install the python evaluation tool for VisDrone
 # Reference: https://github.com/tjiiv-cprg/visdrone-det-toolkit-python
-cd visdrone-det-toolkit-python
+cd visdrone_eval
 pip install -e .
 
 # OPTIONAL: Install detectron2_backbone if you want to use backbone networks like MobileNet
