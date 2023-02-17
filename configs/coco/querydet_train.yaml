@@ -1,5 +1,5 @@
 _BASE_: "../BaseRetina.yaml"
-OUTPUT_DIR: "/default_dir"
+OUTPUT_DIR: "work_dirs/coco_querydet"
 
 MODEL:
   META_ARCHITECTURE: "RetinaNetQueryDet"
@@ -34,6 +34,8 @@ MODEL:
     QUERY_INFER: False
 
   CUSTOM:
+    CLEAR_CUDA_CACHE: True
+    USE_LOOP_MATCHER: True
     FOCAL_LOSS_ALPHAS: [0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
     FOCAL_LOSS_GAMMAS: [2.0, 2.0, 2.0, 2.0, 2.0, 2.0]
     CLS_WEIGHTS: [1.0, 1.4, 2.1, 2.5, 2.9, 3.2]

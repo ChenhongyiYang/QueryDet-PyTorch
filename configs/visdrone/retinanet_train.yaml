@@ -1,5 +1,5 @@
 _BASE_: "../BaseRetina.yaml"
-OUTPUT_DIR: "/testdir"
+OUTPUT_DIR: "work_dirs/visdrone_retinanet"
 
 MODEL:
   META_ARCHITECTURE: "RetinaNet_D2"

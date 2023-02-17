@@ -17,6 +17,8 @@ def add_custom_config(cfg):
     cfg.MODEL.CUSTOM.REG_WEIGHTS = []
     
     cfg.MODEL.CUSTOM.USE_LOOP_MATCHER = False
+    cfg.MODEL.CUSTOM.GRADIENT_CHECKPOINT = False
+    cfg.MODEL.CUSTOM.CLEAR_CUDA_CACHE = False
     
     # soft nms
     cfg.MODEL.CUSTOM.USE_SOFT_NMS       = False
@@ -61,7 +63,7 @@ def add_custom_config(cfg):
     cfg.META_INFO.VIS_ROOT = ''
     cfg.META_INFO.EVAL_GPU_TIME = False
     cfg.META_INFO.EVAL_AP = True
-    cfg.META_INFO.CLEAR_CUDA_CACHE = False
+
     #----------------------------------------------------------------------------------------------
     #                                      VisDrone2018
     #----------------------------------------------------------------------------------------------

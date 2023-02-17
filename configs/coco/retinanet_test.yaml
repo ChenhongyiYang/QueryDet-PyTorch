@@ -1,5 +1,5 @@
 _BASE_: "../BaseRetina.yaml"
-OUTPUT_DIR: "/test_output"
+OUTPUT_DIR: "work_dirs/model_test"
 MODEL:
   META_ARCHITECTURE: "RetinaNet_D2"
   WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"

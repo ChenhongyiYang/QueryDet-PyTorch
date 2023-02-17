@@ -33,6 +33,7 @@ from utils.utils import *
 from utils.loop_matcher import LoopMatcher
 from utils.soft_nms import SoftNMSer
 from utils.anchor_gen import AnchorGeneratorWithCenter
+from utils.gradient_checkpoint import checkpoint
 import models.querydet.det_head as dh
 import models.querydet.qinfer as qf
 
@@ -102,9 +103,10 @@ class RetinaNetQueryDet(nn.Module):
         self.query_threshold          = cfg.MODEL.QUERY.THRESHOLD
         self.query_context            = cfg.MODEL.QUERY.CONTEXT
         # other settings
-        self.clear_cuda_cache         = cfg.META_INFO.CLEAR_CUDA_CACHE
+        self.clear_cuda_cache         = cfg.MODEL.CUSTOM.CLEAR_CUDA_CACHE
         self.anchor_num               = len(cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS[0]) * \
                                         len(cfg.MODEL.ANCHOR_GENERATOR.SIZES[0])
+        self.with_cp                  = cfg.MODEL.CUSTOM.GRADIENT_CHECKPOINT
         # fmt: on
         assert 'p2' in self.in_features
 
