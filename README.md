@@ -8,7 +8,7 @@ This repository is the official implementation of our paper: [QueryDet: Cascaded
 
 
 
-## IMPORTANT UDPATE !!! 
+## IMPORTANT UPDATE !!! 
 
 We have updated the QueryDet repository to make it easier to use. Specifically:
 
@@ -163,7 +163,7 @@ export SPCONV_FILTER_HWIO="1"; python infer_coco.py --config-file configs/visdro
 - For COCO, Detectron2 will automatically evaluate the result when you run the inference command so you do not need to run any extra command.
 - For VisDrone, after running an inference command, you will get a result file named `visdrone_infer.json` in your resulting directory (e.g., `work_dirs/model_test` in the above commands). Then you have two options to evluate the result:
   - If you have installed the Python evaluation tool then you can evaluate your result by running `bash eval_visdrone.sh work_dirs/model_test/visdrone_infer.json`
-  - If you want to use the official Matlab evaluation tool, you can run `python visdrone/json_to_txt.py --out /path/to/result --gt-json data/visdrone/coco_format/annotations/val_label.json --det-json work_dirs/model_test/visdrone_infer.json` to convert the result to .txt files for you Matlab evalutation.
+  - If you want to use the official Matlab evaluation tool, you can run `python visdrone/json_to_txt.py --out /path/to/result --gt-json data/visdrone/coco_format/annotations/val_label.json --det-json work_dirs/model_test/visdrone_infer.json` to convert the result to .txt files for Matlab evalutation.
 
 
 
