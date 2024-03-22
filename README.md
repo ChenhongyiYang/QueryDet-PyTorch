@@ -13,10 +13,10 @@ This repository is the official implementation of our paper: [QueryDet: Cascaded
 We have updated the QueryDet repository to make it easier to use. Specifically:
 
 - QueryDet now supports newer versions of PyTorch and Detectron2. 
-- You do not need APEX any more. Now the FP16 training is through PyTorch AMP. 
+- You do not need APEX anymore. FP16 training is currently achieved through PyTorch AMP. 
 - QueryDet now supports Spconv 2.1, which can be directly installed using pip. 
 - We have improved the support for the VisDrone dataset.
-- We have reorganlzed the model configs to make them easier to use. 
+- We have re-orgnized the model configs to make them easier to use. 
 
 
 
@@ -24,7 +24,7 @@ We have updated the QueryDet repository to make it easier to use. Specifically:
 
 ### Environment setting: 
 
-We tested the new QueryDet with CUDA 10.2 using NVIDIA 2080Ti GPUs. We provide a sample setting up script as following:
+We tested the new QueryDet with CUDA 10.2 using NVIDIA 2080Ti GPUs. We provide a sample setting-up script as follows:
 
 ```shell
 conda create -n querydet python=3.7 -y
@@ -54,10 +54,10 @@ You need to set up COCO following the [official tutorial](https://detectron2.rea
 
 ### VisDrone setting:
 
-We provide a full support for the VisDrone dataset.
+We provide full support for the VisDrone dataset.
 
 - You need to download the VisDrone dataset from its [official website](http://aiskyeye.com/). 
-- Unzip and place the downloaded dataset as following:
+- Unzip and place the downloaded dataset as follows:
 
 ```
 QueryDet-PyTorch
@@ -76,7 +76,7 @@ QueryDet-PyTorch
 ```
 
 - Pre-process the dataset by running: `python visdrone/data_prepare.py --visdrone-root data/visdrone`.
-- The resulted file structure will be as following: 
+- The resulting file structure will be as follows: 
 
 ```
 QueryDet-PyTorch
@@ -108,7 +108,7 @@ QueryDet-PyTorch
 
 ## Usage
 
-Before training, we recommend you to create a `work_dirs` directory to store all training results under `QueryDet-PyTorch` as following:
+Before training, we recommend you to create a `work_dirs` directory to store all training results under `QueryDet-PyTorch` as follows:
 
 ```
 QueryDet-PyTorch
@@ -116,9 +116,9 @@ QueryDet-PyTorch
 |-- ...  # other stuffs
 ```
 
-If you do not want you store your training results in other place, you can run `ln -s /path/to/your/storage work_dirs` to create a symbolic link.
+If you do not want to store your training results in another place, you can run `ln -s /path/to/your/storage work_dirs` to create a symbolic link.
 
-In the following we will assume you have created such a directory and introdce the training, testing, and evaluating commands. 
+In the following, we will assume you have created such a directory and introduce the training, testing, and evaluating commands. 
 
 ### Training
 
@@ -161,9 +161,9 @@ export SPCONV_FILTER_HWIO="1"; python infer_coco.py --config-file configs/visdro
 ### Evaluation
 
 - For COCO, Detectron2 will automatically evaluate the result when you run the inference command so you do not need to run any extra command.
-- For VisDrone, after running an inference command, you will get a result file named `visdrone_infer.json` in your resulting directory (e.g., `work_dirs/model_test` in the above commands). Then you have two options to evluate the result:
-  - If you have installed the Python evaluation tool then you can evaluate your result by running `bash eval_visdrone.sh work_dirs/model_test/visdrone_infer.json`
-  - If you want to use the official Matlab evaluation tool, you can run `python visdrone/json_to_txt.py --out /path/to/result --gt-json data/visdrone/coco_format/annotations/val_label.json --det-json work_dirs/model_test/visdrone_infer.json` to convert the result to .txt files for Matlab evalutation.
+- For VisDrone, after running an inference command, you will get a result file named `visdrone_infer.json` in your resulting directory (e.g., `work_dirs/model_test` in the above commands). Then you have two options to evaluate the result:
+  - If you have installed the Python evaluation tool, then you can evaluate your result by running `bash eval_visdrone.sh work_dirs/model_test/visdrone_infer.json`
+  - If you want to use the official Matlab evaluation tool, you can run `python visdrone/json_to_txt.py --out /path/to/result --gt-json data/visdrone/coco_format/annotations/val_label.json --det-json work_dirs/model_test/visdrone_infer.json` to convert the result to .txt files for Matlab evaluation.
 
 
 
